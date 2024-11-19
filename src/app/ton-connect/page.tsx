@@ -25,7 +25,7 @@ export default function TONConnectPage() {
       <Page>
         <Placeholder
           className="ton-connect-page__placeholder"
-          header="TON Connect"
+          header="TONTON Connect"
           description={
             <>
               <Text>
