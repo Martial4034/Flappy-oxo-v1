@@ -51,7 +51,7 @@ function RootInner({ children }: PropsWithChildren) {
   }, [debug]);
 
   return (
-    <TonConnectUIProvider manifestUrl="/tonconnect-manifest.json">
+    <TonConnectUIProvider manifestUrl="https://flappy-oxo-v1.vercel.app/tonconnect-manifest.json">
       <AppRoot
         appearance={isDark ? 'dark' : 'light'}
         platform={['macos', 'ios'].includes(lp.platform) ? 'ios' : 'base'}
