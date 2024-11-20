@@ -10,13 +10,13 @@ import 'normalize.css/normalize.css';
 import './_assets/globals.css';
 
 export const metadata: Metadata = {
-  title: 'Your Application Title Goes Here',
-  description: 'Your application description goes here',
+  title: 'Flappy Oxo',
+  description: 'Flappy Oxo is a multiplayer game with TON blockchain',
 };
 
 export default async function RootLayout({ children }: PropsWithChildren) {
   const locale = await getLocale();
-
+  
   return (
     <html lang={locale}>
     <body>
