@@ -52,6 +52,11 @@ export default function Home() {
               Theme Parameters
             </Cell>
           </Link>
+          <Link href="/protected">
+            <Cell subtitle="Telegram application palette information">
+              Page obligeant la connect
+            </Cell>
+          </Link>
         </Section>
         <Section header={t('header')} footer={t('footer')}>
           <LocaleSwitcher/>

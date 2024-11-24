@@ -1,20 +1,15 @@
 'use client';
 
 import { type PropsWithChildren, useEffect } from 'react';
-import {
-  initData,
-  miniApp,
-  useLaunchParams,
-  useSignal,
-} from '@telegram-apps/sdk-react';
+import { miniApp, useLaunchParams, useSignal, initData } from '@telegram-apps/sdk-react';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import { AppRoot } from '@telegram-apps/telegram-ui';
-
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorPage } from '@/components/ErrorPage';
 import { useTelegramMock } from '@/hooks/useTelegramMock';
 import { useDidMount } from '@/hooks/useDidMount';
 import { useClientOnce } from '@/hooks/useClientOnce';
+import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
 import { setLocale } from '@/core/i18n/locale';
 import { init } from '@/core/init';
 
@@ -23,7 +18,6 @@ import './styles.css';
 function RootInner({ children }: PropsWithChildren) {
   const isDev = process.env.NODE_ENV === 'development';
 
-  // Mock Telegram environment in development mode if needed.
   if (isDev) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useTelegramMock();
@@ -32,23 +26,37 @@ function RootInner({ children }: PropsWithChildren) {
   const lp = useLaunchParams();
   const debug = isDev || lp.startParam === 'debug';
 
-  // Initialize the library.
   useClientOnce(() => {
     init(debug);
   });
 
   const isDark = useSignal(miniApp.isDark);
-  const initDataUser = useSignal(initData.user);
+  const telegramUser = useSignal(initData.user);
+  const { loading, error, isAuthenticated, authenticate } = useFirebaseAuth();
 
-  // Set the user locale.
   useEffect(() => {
-    initDataUser && setLocale(initDataUser.languageCode);
-  }, [initDataUser]);
+    if (telegramUser?.languageCode) {
+      setLocale(telegramUser.languageCode);
+    }
+  }, [telegramUser]);
 
-  // Enable debug mode to see all the methods sent and events received.
   useEffect(() => {
     debug && import('eruda').then((lib) => lib.default.init());
   }, [debug]);
+
+  useEffect(() => {
+    if (!isAuthenticated && !loading && !error) {
+      authenticate().catch(console.error);
+    }
+  }, [isAuthenticated, loading, error, authenticate]);
+
+  if (error) {
+    return <ErrorPage error={error} />;
+  }
+
+  if (loading) {
+    return <div className="root__loading">Loading...</div>;
+  }
 
   return (
     <TonConnectUIProvider manifestUrl="https://flappy-oxo-v1.vercel.app/tonconnect-manifest.json">
@@ -63,14 +71,13 @@ function RootInner({ children }: PropsWithChildren) {
 }
 
 export function Root(props: PropsWithChildren) {
-  // Unfortunately, Telegram Mini Apps does not allow us to use all features of
-  // the Server Side Rendering. That's why we are showing loader on the server
-  // side.
   const didMount = useDidMount();
 
   return didMount ? (
     <ErrorBoundary fallback={ErrorPage}>
-      <RootInner {...props}/>
+      <RootInner {...props} />
     </ErrorBoundary>
-  ) : <div className="root__loading">Loading</div>;
+  ) : (
+    <div className="root__loading">Loading</div>
+  );
 }
