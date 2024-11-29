@@ -76,7 +76,7 @@ function RootInner({ children }: PropsWithChildren) {
     return (
       <>
         <ErrorPage error={error} />
-        <button onClick={handleReauthenticate}>Réessayer l'authentification</button>
+        <button onClick={handleReauthenticate}>Réessayer l&apos;authentification</button>
       </>
     );
   }
