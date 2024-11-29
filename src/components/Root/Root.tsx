@@ -48,10 +48,37 @@ function RootInner({ children }: PropsWithChildren) {
     if (!isAuthenticated && !loading && !error) {
       authenticate().catch(console.error);
     }
+    console.log('isAuthenticated', isAuthenticated);
+    console.log('User', telegramUser);
   }, [isAuthenticated, loading, error, authenticate]);
 
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      console.log('Route changée vers:', url);
+    };
+
+    window.addEventListener('popstate', () => {
+      console.log('Navigation détectée');
+    });
+
+    return () => {
+      window.removeEventListener('popstate', () => {
+        console.log('Navigation détectée');
+      });
+    };
+  }, []);
+
+  const handleReauthenticate = () => {
+    authenticate().catch(console.error);
+  };
+
   if (error) {
-    return <ErrorPage error={error} />;
+    return (
+      <>
+        <ErrorPage error={error} />
+        <button onClick={handleReauthenticate}>Réessayer l'authentification</button>
+      </>
+    );
   }
 
   if (loading) {

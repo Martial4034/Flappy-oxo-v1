@@ -22,6 +22,9 @@ interface UserData {
   username?: string | null;
   photoUrl?: string | null;
   languageCode?: string;
+  referredBy?: string | null;
+  referralCode: string;
+  referralCount: number;
 }
 
 interface RequestInfo {
@@ -68,7 +71,8 @@ export async function getOrCreateFirebaseUser(userData: UserData, requestInfo: R
 
       return {
         uid: userDoc.id,
-        isNewUser: false
+        isNewUser: false,
+        referralCode: userDoc.data().referralCode
       };
     }
 
@@ -77,6 +81,7 @@ export async function getOrCreateFirebaseUser(userData: UserData, requestInfo: R
     
     // Créer un ID unique basé sur l'ID Telegram
     const uid = `telegram_${telegramId}`;
+    const referralCode = generateReferralCode(telegramId);
 
     // Créer l'utilisateur dans Authentication
     await authAdmin.createUser({
@@ -85,10 +90,12 @@ export async function getOrCreateFirebaseUser(userData: UserData, requestInfo: R
       photoURL: userData.photoUrl || undefined,
     });
 
-    // Créer le document utilisateur dans Firestore
+    // Créer le document utilisateur avec les informations de parrainage
     await firestoreAdmin.collection('users').doc(uid).set({
       ...userData,
       displayName,
+      referralCode,
+      referralCount: 0,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       lastLogin: admin.firestore.FieldValue.serverTimestamp(),
       deviceInfo: {
@@ -105,10 +112,58 @@ export async function getOrCreateFirebaseUser(userData: UserData, requestInfo: R
 
     return {
       uid,
-      isNewUser: true
+      isNewUser: true,
+      referralCode
     };
   } catch (error) {
     console.error('Erreur lors de la gestion de l\'utilisateur:', error);
+    throw error;
+  }
+}
+
+// Fonction utilitaire pour générer un code de parrainage unique
+function generateReferralCode(telegramId: number): string {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substr(2, 5);
+  return `REF_${telegramId}_${timestamp}${random}`.toUpperCase();
+}
+
+// Nouvelle fonction pour gérer les parrainages
+export async function handleReferral(userId: string, referralCode: string) {
+  try {
+    // Vérifier que l'utilisateur n'est pas déjà parrainé
+    const userDoc = await firestoreAdmin.collection('users').doc(userId).get();
+    if (userDoc.data()?.referredBy) {
+      return { success: false, message: 'Utilisateur déjà parrainé' };
+    }
+
+    // Trouver le parrain
+    const referrerSnapshot = await firestoreAdmin
+      .collection('users')
+      .where('referralCode', '==', referralCode)
+      .limit(1)
+      .get();
+
+    if (referrerSnapshot.empty) {
+      return { success: false, message: 'Code de parrainage invalide' };
+    }
+
+    const referrerDoc = referrerSnapshot.docs[0];
+    
+    // Mettre à jour l'utilisateur parrainé
+    await userDoc.ref.update({
+      referredBy: referrerDoc.id,
+      referredAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Mettre à jour le compteur du parrain
+    await referrerDoc.ref.update({
+      referralCount: admin.firestore.FieldValue.increment(1)
+    });
+
+    return { success: true, referrerId: referrerDoc.id };
+  } catch (error) {
+    console.error('Erreur lors du parrainage:', error);
     throw error;
   }
 }

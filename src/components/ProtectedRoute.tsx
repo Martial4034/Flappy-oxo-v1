@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, loading } = useFirebaseAuth();
-  console.log('isAuthenticated =', isAuthenticated);
+  console.log('utilisateur authentifié demande', isAuthenticated);
   const router = useRouter();
 
   useEffect(() => {

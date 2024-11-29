@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@telegram-apps/sdk':
+    specifier: ^2.6.2
+    version: 2.6.2
   '@telegram-apps/sdk-react':
     specifier: ^2.0.5
     version: 2.0.12(@types/react@18.3.12)(react@18.3.1)
@@ -14,6 +17,9 @@ dependencies:
   '@tonconnect/ui-react':
     specifier: ^2.0.5
     version: 2.0.9(react-dom@18.3.1)(react@18.3.1)
+  '@twa-dev/sdk':
+    specifier: ^8.0.1
+    version: 8.0.1(react@18.3.1)
   buffer:
     specifier: ^6.0.3
     version: 6.0.3
@@ -1462,8 +1468,21 @@ packages:
     dev: false
     optional: true
 
+  /@twa-dev/sdk@8.0.1(react@18.3.1):
+    resolution: {integrity: sha512-mBR5dnAvSyRx7YGt/n0Owq1z8MsWhsuh76JD1abV0TZWHi6RQSPXBNAG0XMOMO7Vf5hsAwUTul+x54vf43Ku0A==}
+    peerDependencies:
+      react: ^18.3.1
+    dependencies:
+      '@twa-dev/types': 8.0.1
+      react: 18.3.1
+    dev: false
+
   /@twa-dev/types@7.10.0:
     resolution: {integrity: sha512-BXHyNLXy+cPbOZ2qQq5ArPKcP4kUfuX3YBSFT0XUxtMNWAzvyMuYAiq59UTfQ8OnELXlfChrAoIT3c2pujBtcQ==}
+    dev: false
+
+  /@twa-dev/types@8.0.1:
+    resolution: {integrity: sha512-/m3KiULhI4fdeoI5K9Op9jFbmdPjxaAdrZBJ3BA1fS4lVmKCx9XuLTeumzYeuOW577eHAJWaZkcSpWBOss4Epw==}
     dev: false
 
   /@types/body-parser@1.19.5:

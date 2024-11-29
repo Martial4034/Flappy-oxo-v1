@@ -12,14 +12,8 @@ export async function POST(request: Request) {
   
   try {
     const { initData } = await request.json();
-    
-    if (!initData) {
-      console.error('❌ Données manquantes');
-      return NextResponse.json(
-        { error: 'Données manquantes' },
-        { status: 400 }
-      );
-    }
+    console.log('🔍 initData:', initData);
+  
 
     const validation = validateTelegramData(initData);
     console.log('🔍 Résultat validation:', validation.message);
@@ -40,18 +34,35 @@ export async function POST(request: Request) {
     try {
       // S'assurer que l'ID est un nombre
       const telegramId = Number(validation.user.id);
-      if (isNaN(telegramId)) {
+      if (isNaN(telegramId) || telegramId <= 0) {
         throw new Error('ID Telegram invalide');
       }
+
+      
+      const { first_name, last_name, username, photo_url, language_code } = validation.user;
+      
+      // Vérification et attribution du username
+      
+      const usernameToUse = username || `${first_name}`;
+      
+      if (!first_name || !last_name || !photo_url || !language_code) {
+        return NextResponse.json(
+          { error: 'Certaines données utilisateur sont manquantes' },
+          { status: 400 }
+        );
+      }
+
 
       // Créer/récupérer l'utilisateur Firebase
       const { uid, isNewUser } = await getOrCreateFirebaseUser({
         telegramId,
-        firstName: validation.user.first_name,
-        lastName: validation.user.last_name,
-        username: validation.user.username,
-        photoUrl: validation.user.photo_url,
-        languageCode: validation.user.language_code
+        firstName: first_name,
+        lastName: last_name,
+        username: usernameToUse,
+        photoUrl: photo_url,
+        languageCode: language_code,
+        referralCode: '', // Valeur par défaut
+        referralCount: 0   // Valeur par défaut
       }, requestInfo);
 
       // Générer le token Firebase
@@ -86,9 +97,9 @@ export async function POST(request: Request) {
       });
 
     } catch (error) {
-      console.error('❌ Erreur Firebase:', error);
+      console.error('❌ Erreur lors de la création de l\'utilisateur Firebase:', error);
       return NextResponse.json(
-        { error: 'Erreur authentification' },
+        { error: 'Erreur lors de la création de l\'utilisateur' },
         { status: 500 }
       );
     }

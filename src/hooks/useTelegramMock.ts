@@ -62,7 +62,6 @@ export function useTelegramMock(): void {
         platform: 'tdesktop',
       }
     }
-
     sessionStorage.setItem('env-mocked', '1');
     mockTelegramEnv(lp);
     console.warn(
